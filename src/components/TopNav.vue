@@ -1,6 +1,5 @@
 <template>
-    <router-view/>
-
+<div>this is</div>
 </template>
 <script>
 export default {
@@ -8,8 +7,5 @@ export default {
 }
 </script>
 <style>
-    body{
-    padding: 0%;
-    margin: 0px;
-    }
+
 </style>

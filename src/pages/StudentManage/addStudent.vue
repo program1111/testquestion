@@ -1,9 +1,9 @@
 <template>
-    <div>所有题库</div>
+    <div>成绩管理</div>
     </template>
 <script>
 export default {
-  name: 'addTest',
+  name: 'addStudent',
   mounted () {
 
   },
