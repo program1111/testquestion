@@ -1,5 +1,5 @@
 <template>
-<div>this is</div>
+<div>this is TopNav</div>
 </template>
 <script>
 export default {
