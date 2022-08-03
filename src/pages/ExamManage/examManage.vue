@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="height: 500px;">
 
     <div>考试管理</div></div>
 

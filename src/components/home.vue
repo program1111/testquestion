@@ -1,13 +1,17 @@
 <template>
     <el-container>
-        <el-aside ref="menu_right" width="180px">
+
+        <el-aside  :style="{width:sidebar.width+'px'}">
             <NavMenu></NavMenu>
-        </el-aside>
+         </el-aside>
+
         <el-container>
-            <el-header>
+            <el-header style="padding:0%">
                 <TopNav></TopNav>
+
             </el-header>
             <el-main>
+
                 <router-view></router-view>
                 <!--页面渲染入口-->
             </el-main>
@@ -20,6 +24,7 @@
 import { mapGetters } from 'vuex'
 import NavMenu from './NavMenu'
 import TopNav from './TopNav'
+
 export default {
   name: 'home',
   data () {
@@ -32,6 +37,7 @@ export default {
   components: {
     NavMenu,
     TopNav
+
   },
   created () {
   },
@@ -39,20 +45,23 @@ export default {
   },
   watch: {
 
+  },
+  beforeUpdated () {
+    console.log(this, 'befor')
   }
 }
 </script>
 <style scoped>
     .el-header,
     .el-footer {
-        background-color: #B3C0D1;
+        background-color: #ffffff;
         color: #333;
         text-align: center;
         line-height: 60px;
     }
 
     .el-aside {
-        background-color: #D3DCE6;
+        /* background-color: #D3DCE6; */
         color: #333;
         text-align: center;
         line-height: 200px;

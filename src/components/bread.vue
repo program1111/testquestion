@@ -1,13 +1,12 @@
 <template>
-  <div>
-    <div class='bread_container' id="bread_container"  @click="handleLefeMenu" >
-      <span class="bars">
-        <i class="el-icon-s-unfold" v-if="changeBarDirection"></i>
-        <i class="el-icon-s-fold" v-if="!changeBarDirection"></i>
-      </span>
-    </div>
+  <div class='bread_container' id="bread_container">
+    <span @click="handleLefeMenu" class="bars">
+    <i class="el-icon-s-unfold"    v-if="changeBarDirection"></i>
+    <i class="el-icon-s-fold"     v-if="!changeBarDirection"></i>
+    </span>
   </div>
 </template>
+
 <script>
 
 export default {
@@ -56,13 +55,10 @@ export default {
 </script>
 
 <style lang="less">
-  .bread_container {
-    background-color: #ffffff;
-    width: 45px;
 
-  }.bread_container:hover{
-    background-color: #e5e5e5;
-    cursor: pointer;
-  }
+	.bread_container{
+		background-color: #eaebec;
+		width:45px;
 
+	}
 </style>
