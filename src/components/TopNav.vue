@@ -1,12 +1,12 @@
 <template>
-  <div>
-    <div class='bread_container' id="bread_container"  @click="handleLefeMenu" >
+
+    <div class='bread_container'    @click="handleLefeMenu" >
       <span class="bars">
         <i class="el-icon-s-unfold" v-if="changeBarDirection"></i>
         <i class="el-icon-s-fold" v-if="!changeBarDirection"></i>
       </span>
     </div>
-  </div>
+
 </template>
 <script>
 
@@ -58,7 +58,7 @@ export default {
 <style lang="less">
   .bread_container {
     background-color: #ffffff;
-    width: 45px;
+    width: 50px;
 
   }.bread_container:hover{
     background-color: #e5e5e5;
