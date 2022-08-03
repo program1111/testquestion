@@ -26,7 +26,7 @@
 
     </template>
 <script>
-
+import { setToken } from '@/utils/auth'
 export default {
   data () {
     return {
@@ -64,6 +64,7 @@ export default {
           loginForm: this.loginForm
         }).then(response => {
           console.log('dd', response)
+          setToken('Token', 'amy')
           //   if (response.meta.status !== 200) {
           //     console.log('登录失败')
           //     localStorage.setItem('username', 'admin1')
