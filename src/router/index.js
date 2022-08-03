@@ -1,18 +1,15 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import login from '../components/login'
-// import Home from '../views/Home.vue'
-// import examManage from '../pages/ExamManage/examManage'
-// import navMenu from '../components/NavMenu'
 import home from '../components/home'
-// import otherManage from '../pages/OtherManage/otherManage'
-// import scoreManage from '../pages/ScoreManage/scoreManage'
-// import addStudent from '../pages/StudentManage/addStudent'
-// import studentManage from '../pages/StudentManage/studentManage'
-// import teacherManage from '../pages/TeacherManage/teacherManage'
+import otherManage from '../pages/OtherManage/otherManage'
+import scoreManage from '../pages/ScoreManage/scoreManage'
+import addStudent from '../pages/StudentManage/addStudent'
+import studentManage from '../pages/StudentManage/studentManage'
+import teacherManage from '../pages/TeacherManage/teacherManage'
 import allTest from '../pages/TestManage/allTest'
 import addTest from '../pages/TestManage/addTest'
-// import ExamManage from '../pages/ExamManage/ExamManage'
+import examManage from '../pages/ExamManage/examManage'
 Vue.use(VueRouter)
 
 const routes = [{
@@ -26,167 +23,132 @@ const routes = [{
   name: 'index',
   component: home,
   meta: {
-    title: '首页',
-    icon: 'icondashboard'
+    title: '考试管理',
+    icon: 'el-icon-reading'
   },
   noDropdown: true,
   children: [
     {
       path: 'index',
       meta: {
-        title: '首页1',
-        icon: 'icondashboard',
+        title: '考试管理',
+        icon: 'el-icon-reading',
         routerType: 'leftmenu'
       },
-      component: allTest
+      component: examManage
     }
   ]
 
 },
 {
-  path: '/index',
-  name: 'index',
-  component: home,
+  path: '/testmanage',
+  name: 'fundManage',
   meta: {
-    title: '首页2',
-    icon: 'icondashboard'
+    title: '题库管理',
+    icon: 'el-icon-coin'
   },
-  noDropdown: true,
+  component: home,
   children: [
     {
-      path: 'index1',
+      path: 'alltest',
+      name: 'alltest',
       meta: {
-        title: '首页',
-        icon: 'icondashboard',
+        title: '所有题库',
+        routerType: 'leftmenu'
+      },
+      component: allTest
+    },
+    {
+      path: 'addtest',
+      name: 'addtest',
+      meta: {
+        title: '添加题库',
         routerType: 'leftmenu'
       },
       component: addTest
     }
   ]
+},
+{
+  path: '/scoremanage',
+  name: 'scoremanage',
+  component: home,
+  meta: {
+    title: '成绩管理',
+    icon: 'el-icon-edit'
+  },
+  noDropdown: true,
+  children: [
+    {
+      path: 'scoremanage',
+      meta: {
+        title: '成绩管理',
+        icon: 'icondashboard',
+        routerType: 'leftmenu'
+      },
+      component: scoreManage
+    }
+  ]
 
 },
 {
-  path: '/userManager',
+  path: '/studentmanage',
+  name: 'fundManage',
+  meta: {
+    title: '学生管理',
+    icon: 'el-icon-s-custom'
+  },
+  component: home,
+  children: [
+    {
+      path: 'studentmanage',
+      name: 'studentmanage',
+      meta: {
+        title: '学生管理',
+        routerType: 'leftmenu'
+      },
+      component: studentManage
+    },
+    {
+      path: 'addstudent',
+      name: 'addstudent',
+      meta: {
+        title: '添加学生',
+        routerType: 'leftmenu'
+      },
+      component: addStudent
+    }
+  ]
+},
+
+{
+  path: '/teachermanage',
   name: 'userManage',
   component: home,
   meta: {
     title: '用户管理',
-    icon: 'iconuser'
+    icon: 'el-icon-user'
   },
   noDropdown: true,
   children: [
     {
-      path: 'userList',
+      path: 'teachermanage',
       meta: {
         title: '用户管理',
-        icon: 'iconuser',
+        icon: 'el-icon-user',
         routerType: 'leftmenu'
       },
-      component: addTest
-    }
-  ]
-},
-{
-  path: '/share',
-  name: 'share',
-  component: home,
-  meta: {
-    title: '分享功能',
-    icon: 'iconshare'
-  },
-  noDropdown: true,
-  children: [
-    {
-      path: 'share',
-      meta: {
-        title: '分享功能',
-        icon: 'iconshare',
-        routerType: 'leftmenu'
-      },
-      component: addTest
+      component: teacherManage
     }
   ]
 },
 
-{
-  path: '/fundManage',
-  name: 'fundManage',
-  meta: {
-    title: '资金管理',
-    icon: 'iconpay3'
-  },
-  component: home,
-  children: [
-    {
-      path: 'fundList',
-      name: 'fundList',
-      meta: {
-        title: '资金流水',
-        routerType: 'leftmenu'
-      },
-      component: addTest
-    },
-    {
-      path: 'chinaTabsList',
-      name: 'chinaTabsList',
-      meta: {
-        title: '区域投资',
-        routerType: 'leftmenu'
-      },
-      component: addTest
-    }, {
-      path: 'fundList',
-      name: 'fundList',
-      meta: {
-        title: '资金流水',
-        routerType: 'leftmenu'
-      },
-      component: addTest
-    }
-  ]
-},
-{
-  path: '/fundData',
-  name: 'fundData',
-  meta: {
-    title: '资金数据',
-    icon: 'iconecharts'
-  },
-  component: home,
-  redirect: '/fundData/fundPosition',
-  children: [
-    {
-      path: 'fundPosition',
-      name: 'fundPosition',
-      meta: {
-        title: '投资分布'
-      },
-      component: addTest
-    },
-    {
-      path: 'typePosition',
-      name: 'typePosition',
-      meta: {
-        title: '项目分布'
-      },
-      component: addTest
-    },
-    {
-      path: 'incomePayPosition',
-      name: 'incomePayPosition',
-      meta: {
-        title: '收支统计'
-      },
-      component: addTest
-    }
-  ]
-},
 {
   path: '/permission',
   name: 'permission',
   meta: {
     title: '权限设置',
-    icon: 'iconpermission',
+    icon: 'el-icon-setting',
     roles: ['admin', 'editor'] // you can set roles in root nav
   },
   component: home,
@@ -215,13 +177,13 @@ const routes = [{
   name: 'errorPage',
   meta: {
     title: '错误页面',
-    icon: 'iconError'
+    icon: 'el-icon-question'
   },
   children: [
     {
       path: '401',
       name: 'page401',
-      component: addTest,
+      component: otherManage,
       meta: {
         title: '401',
         noCache: true
@@ -230,7 +192,7 @@ const routes = [{
     {
       path: '404',
       name: 'page404',
-      component: addTest,
+      component: otherManage,
       meta: {
         title: '404',
         noCache: true

@@ -7,11 +7,11 @@ const types = {
 }
 const menu = {
   state: {
-    minLeftMenuWidth: 35,
-    maxLeftMenuWidth: 180,
+    minLeftMenuWidth: 60,
+    maxLeftMenuWidth: 200,
     sidebar: {
       opened: true,
-      width: 180
+      width: 200
     },
     isCollapse: false, // 菜单默认展开
     isFooter: false
