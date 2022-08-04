@@ -218,7 +218,8 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   const token = getToken('Token')
-  if (token && to.path === '/login') {
+  console.log(token, 'token')
+  if (token && (to.path === '/' || to.path === '/login')) {
     next()
     next('/index/index')
   } else if (token && to.path !== '/login') {
