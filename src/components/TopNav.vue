@@ -1,11 +1,21 @@
 <template>
+  <div>
+    <el-row>
+      <el-col :span="20">
+        <div class='bread_container' @click="handleLefeMenu">
+          <span class="bars">
+            <i class="el-icon-s-unfold" v-if="changeBarDirection"></i>
+            <i class="el-icon-s-fold" v-if="!changeBarDirection"></i>
+          </span>
+        </div>
+      </el-col>
+      <el-col :span="4">
+        <!-- <el-avatar icon="el-icon-user-solid"></el-avatar> -->
+        <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" style="margin-top: 10px;"></el-avatar>
+      </el-col>
+    </el-row>
 
-    <div class='bread_container'    @click="handleLefeMenu" >
-      <span class="bars">
-        <i class="el-icon-s-unfold" v-if="changeBarDirection"></i>
-        <i class="el-icon-s-fold" v-if="!changeBarDirection"></i>
-      </span>
-    </div>
+  </div>
 
 </template>
 <script>
@@ -60,7 +70,9 @@ export default {
     background-color: #ffffff;
     width: 50px;
 
-  }.bread_container:hover{
+  }
+
+  .bread_container:hover {
     background-color: #e5e5e5;
     cursor: pointer;
   }
