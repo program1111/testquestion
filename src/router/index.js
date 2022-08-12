@@ -9,7 +9,9 @@ import studentManage from '../pages/StudentManage/studentManage'
 import teacherManage from '../pages/TeacherManage/teacherManage'
 import allTest from '../pages/TestManage/allTest'
 import addTest from '../pages/TestManage/addTest'
+import indexManage from '../pages/IndexManage'
 import examManage from '../pages/ExamManage/examManage'
+import addNewExam from '../pages/ExamManage/addNewExam'
 import { getToken } from '../utils/auth'
 Vue.use(VueRouter)
 
@@ -28,6 +30,51 @@ const routes = [{
   name: 'index',
   component: home,
   meta: {
+    title: '首页',
+    icon: 'el-icon-reading'
+  },
+  noDropdown: true,
+  children: [
+    {
+      path: 'index',
+      meta: {
+        title: '首页',
+        icon: 'el-icon-home',
+        routerType: 'leftmenu'
+      },
+      component: indexManage
+    }
+  ]
+
+},
+
+// {
+//   path: '/',
+//   name: 'index',
+//   component: home,
+//   meta: {
+//     title: '首页',
+//     icon: 'el-icon-reading'
+//   },
+//   noDropdown: true,
+//   children: [
+//     {
+//       path: 'addNewExam',
+//       meta: {
+//         title: '首页',
+//         icon: 'el-icon-home',
+//         routerType: 'leftmenu'
+//       },
+//       component: addNewExam
+//     }
+//   ]
+
+// },
+{
+  path: '/examManage',
+  name: 'index',
+  component: home,
+  meta: {
     title: '考试管理',
     icon: 'el-icon-reading'
   },
@@ -41,6 +88,14 @@ const routes = [{
         routerType: 'leftmenu'
       },
       component: examManage
+    }, {
+      path: 'addNewExam',
+      meta: {
+        title: '首页',
+        icon: 'el-icon-home',
+        routerType: 'leftmenu'
+      },
+      component: addNewExam
     }
   ]
 
