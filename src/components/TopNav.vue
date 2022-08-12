@@ -65,7 +65,7 @@ export default {
 
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
   .bread_container {
     background-color: #ffffff;
     width: 50px;

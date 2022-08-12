@@ -54,11 +54,10 @@ export default {
 
 </script>
 
-<style lang="less">
+<style   scoped>
 
-	.bread_container{
-		background-color: #eaebec;
-		width:45px;
-
-	}
+.bread_container{
+background-color: #eaebec;
+width:45px;
+}
 </style>

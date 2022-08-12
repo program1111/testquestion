@@ -7,5 +7,6 @@
     body{
     padding: 0%;
     margin: 0px;
+    min-width: 800px;
     }
 </style>

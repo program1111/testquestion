@@ -68,7 +68,9 @@ export default {
       type: String,
       default: 'blank'
     } // 空白路由的name值
+
   },
+
   data () {
     return {
       contextMenuVisible: false, // 右键菜单是否显示
@@ -235,7 +237,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss">
+  <style lang="scss" scoped>
   .__common-layout-pageTabs {
     .__contextmenu {
       // width: 100px;
