@@ -87,7 +87,7 @@ export default {
     }
   },
   created () {
-    this.userName = localStorage.getItem('username')
+    this.userName = localStorage.getItem('userid')
   },
   mounted () {
     console.log(this.permission_routers, 'permission_routers')
