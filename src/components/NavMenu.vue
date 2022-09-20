@@ -1,7 +1,7 @@
 <template>
   <div class="menu_left cflex">
     <div class="menu_page_bottom is-scroll-left">
-      <el-menu mode="vertical" theme="dark"   :default-active="$route.path" :collapse="isCollapse"
+      <el-menu mode="vertical"    :default-active="$route.path" :collapse="isCollapse"
         :background-color="menuObj.bgColor" :text-color="menuObj.textColor" :active-text-color="menuObj.activeTextColor"
         :style="{width:sidebar.width+'px'}">
         <template v-for="(item,index) in permission_routers">
@@ -83,15 +83,14 @@ export default {
     },
     toggle () {
       this.collapse = !this.collapse
-      console.log('eee')
     }
   },
   created () {
     this.userName = localStorage.getItem('userid')
   },
   mounted () {
-    console.log(this.permission_routers, 'permission_routers')
-    console.log(this, 'is isCollapse')
+    // console.log(this.permission_routers, 'permission_routers')
+    // console.log(this, 'is isCollapse')
   },
   beforeUpdated () {
     console.log(this, 'befor')

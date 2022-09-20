@@ -25,7 +25,7 @@
               <el-input v-model="form.chapter" style="width: 180px;"></el-input>
             </el-form-item>
             <el-form-item label="分值" label-width="40px">
-              <el-input v-model="form.fullScore" style="width: 90px;"></el-input>
+              <el-input v-model="form.fullscore" style="width: 90px;"></el-input>
             </el-form-item>
             <el-form-item label="难度等级">
               <el-select v-model="form.difficulty" placeholder="请选择级别" style="width: 150px;">
@@ -113,7 +113,7 @@
                     <el-tag>题目</el-tag>
                   </el-col>
                   <el-col :span="20">
-                    <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="form.form2.question">
+                    <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="form.form2.stem">
                     </el-input>
                   </el-col>
                 </el-form-item>
@@ -286,7 +286,7 @@
           </span>
         </span>
         <div style="margin-top: 20px;">
-          <el-upload class="upload-demo" drag action="https://jsonplaceholder.typicode.com/posts/" multiple>
+          <el-upload class="upload-demo" drag  :auto-upload = "false" action :on-change="handleExceed" accept = ".xlsx,.xls" multiple>
             <i class="el-icon-upload"></i>
             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
             <div class="el-upload__tip" slot="tip">只能上传xlsx文件，且不超过500kb</div>
@@ -301,9 +301,13 @@
 </template>
 <script>
 import { Quill } from 'vue-quill-editor'
+import debounce from '../../utils/debounce'
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
 import ImageResize from 'quill-image-resize-module'
+import * as XLSX from 'xlsx'
 Quill.register('modules/imageResize', ImageResize)
-
 const toolbarOptions = [
   ['bold', 'italic', 'underline', 'strike'], // 加粗 斜体 下划线 删除线 -----['bold', 'italic', 'underline', 'strike']
   ['blockquote', 'code-block'], // 引用  代码块-----['blockquote', 'code-block']
@@ -332,7 +336,7 @@ export default {
         chapter: '',
         subject: '',
         type: [],
-        fullScore: '',
+        fullscore: '',
         resource: '',
         answer: [],
         // stem: '',
@@ -350,7 +354,7 @@ export default {
           subject: '',
           difficulty: '',
           type: '',
-          fullScore: ''
+          fullscore: ''
         },
         form2: { // 多选题
           stem: '',
@@ -367,7 +371,7 @@ export default {
           subject: '',
           difficulty: '',
           type: '',
-          fullScore: ''
+          fullscore: ''
         },
         form3: { // 判断题
           stem: '11',
@@ -378,7 +382,7 @@ export default {
           subject: '',
           daan: [],
           difficulty: '',
-          fullScore: ''
+          fullscore: ''
         },
         form4: { // 解答题
           stem: '11',
@@ -388,7 +392,7 @@ export default {
           daan: [],
           description: '',
           difficulty: '',
-          fullScore: ''
+          fullscore: ''
 
         }
 
@@ -402,7 +406,7 @@ export default {
       input: '',
       editorOption: {
 
-        theme: 'snow',
+        // theme: 'snow',
         modules: {
           toolbar: toolbarOptions,
           imageResize: {
@@ -423,85 +427,89 @@ export default {
     handleClick (tab, event) {
       console.log(tab, event)
     },
-    onSubmit () {
-      if (this.form.questiontype === '单选题') {
-        this.form.form1.chapter = this.form.chapter
-        this.form.form1.subject = this.form.subject
-        this.form.form1.difficulty = this.form.difficulty
-        this.form.form1.type = this.form.questiontype
-        this.form.form1.fullScore = this.form.fullScore
-        this.form.form1.daan.push({ id: 0, isRightAnswer: this.form.form1.answer === '65' ? 1 : 0, title: 'A.' + this.form.form1.A, orderNumber: 65, content: this.form.form1.A })
-        this.form.form1.daan.push({ id: 0, isRightAnswer: this.form.form1.answer === '66' ? 1 : 0, title: 'B.' + this.form.form1.B, orderNumber: 66, content: this.form.form1.B })
-        this.form.form1.daan.push({ id: 0, isRightAnswer: this.form.form1.answer === '67' ? 1 : 0, title: 'C.' + this.form.form1.C, orderNumber: 67, content: this.form.form1.C })
-        this.form.form1.daan.push({ id: 0, isRightAnswer: this.form.form1.answer === '68' ? 1 : 0, title: 'D.' + this.form.form1.D, orderNumber: 68, content: this.form.form1.D })
-        this.$api.addTest(this.form.form1).then(response => {
+    onSubmit: debounce(function () {
+      if (this.form.chapter === '' || this.form.difficulty === '' || this.form.subject === '') {
+        this.$message.error('空白内容不能发送')
+      } else {
+        if (this.form.questiontype === '单选题') {
+          this.form.form1.chapter = this.form.chapter
+          this.form.form1.subject = this.form.subject
+          this.form.form1.difficulty = this.form.difficulty
+          this.form.form1.type = this.form.questiontype
+          this.form.form1.fullscore = this.form.fullscore
+          this.form.form1.daan.push({ id: 0, isrightanswer: this.form.form1.answer === '65' ? 1 : 0, title: 'A.' + this.form.form1.A, ordernumber: 65, content: this.form.form1.A })
+          this.form.form1.daan.push({ id: 0, isrightanswer: this.form.form1.answer === '66' ? 1 : 0, title: 'B.' + this.form.form1.B, ordernumber: 66, content: this.form.form1.B })
+          this.form.form1.daan.push({ id: 0, isrightanswer: this.form.form1.answer === '67' ? 1 : 0, title: 'C.' + this.form.form1.C, ordernumber: 67, content: this.form.form1.C })
+          this.form.form1.daan.push({ id: 0, isrightanswer: this.form.form1.answer === '68' ? 1 : 0, title: 'D.' + this.form.form1.D, ordernumber: 68, content: this.form.form1.D })
+          this.$api.addTest(this.form.form1).then(response => {
           // console.log(response + 'ddd')
-          if (response.status === 500) {
-            this.$message.error('服务器连接失败，请刷新在试试')
-          } else {
-            this.$message.success(response.data.data.message)
-          }
-        })
-        this.clearData()
-      } else if (this.form.questiontype === '多选题') {
-        this.form.form2.chapter = this.form.chapter
-        this.form.form2.subject = this.form.subject
-        this.form.form2.difficulty = this.form.difficulty
-        this.form.form2.type = this.form.questiontype
+            if (response.status === 500) {
+              this.$message.error('服务器连接失败，请刷新在试试')
+            } else {
+              this.$message.success(response.data.data.message)
+            }
+          })
+          this.clearData()
+        } else if (this.form.questiontype === '多选题') {
+          this.form.form2.chapter = this.form.chapter
+          this.form.form2.subject = this.form.subject
+          this.form.form2.difficulty = this.form.difficulty
+          this.form.form2.type = this.form.questiontype
 
-        this.form.form2.fullScore = this.form.fullScore
-        this.form.form2.daan.push({ id: 0, isRightAnswer: this.form.answer.indexOf('65') !== -1 ? 1 : 0, title: 'A.' + this.form.form2.A, orderNumber: 65, content: this.form.form2.A })
-        this.form.form2.daan.push({ id: 0, isRightAnswer: this.form.answer.indexOf('66') !== -1 ? 1 : 0, title: 'B.' + this.form.form2.B, orderNumber: 66, content: this.form.form2.B })
-        this.form.form2.daan.push({ id: 0, isRightAnswer: this.form.answer.indexOf('67') !== -1 ? 1 : 0, title: 'C.' + this.form.form2.C, orderNumber: 67, content: this.form.form2.C })
-        this.form.form2.daan.push({ id: 0, isRightAnswer: this.form.answer.indexOf('68') !== -1 ? 1 : 0, title: 'D.' + this.form.form2.D, orderNumber: 68, content: this.form.form2.D })
-        this.form.form2.daan.push({ id: 0, isRightAnswer: this.form.answer.indexOf('69') !== -1 ? 1 : 0, title: 'E.' + this.form.form2.D, orderNumber: 69, content: this.form.form2.E })
-        this.form.form2.daan.push({ id: 0, isRightAnswer: this.form.answer.indexOf('70') !== -1 ? 1 : 0, title: 'F.' + this.form.form2.D, orderNumber: 70, content: this.form.form2.F })
-        this.form.form2.answer = this.form.answer.toString()
-        // console.log(this.form.form2, 'this.form.form2')
-        this.$api.addTest(this.form.form2).then(response => {
-          if (response.status === 500) {
-            this.$message.error('服务器连接失败，请刷新在试试')
-          } else {
-            this.$message.success(response.data.data.message)
-          }
-        })
-        this.clearData()
-      } else if (this.form.questiontype === '判断题') {
-        this.form.form3.chapter = this.form.chapter
-        this.form.form3.subject = this.form.subject
-        this.form.form3.difficulty = this.form.difficulty
-        this.form.form3.type = this.form.questiontype
-        this.form.form3.fullScore = this.form.fullScore
+          this.form.form2.fullscore = this.form.fullscore
+          this.form.form2.daan.push({ id: 0, isrightanswer: this.form.answer.indexOf('65') !== -1 ? 1 : 0, title: 'A.' + this.form.form2.A, ordernumber: 65, content: this.form.form2.A })
+          this.form.form2.daan.push({ id: 0, isrightanswer: this.form.answer.indexOf('66') !== -1 ? 1 : 0, title: 'B.' + this.form.form2.B, ordernumber: 66, content: this.form.form2.B })
+          this.form.form2.daan.push({ id: 0, isrightanswer: this.form.answer.indexOf('67') !== -1 ? 1 : 0, title: 'C.' + this.form.form2.C, ordernumber: 67, content: this.form.form2.C })
+          this.form.form2.daan.push({ id: 0, isrightanswer: this.form.answer.indexOf('68') !== -1 ? 1 : 0, title: 'D.' + this.form.form2.D, ordernumber: 68, content: this.form.form2.D })
+          this.form.form2.daan.push({ id: 0, isrightanswer: this.form.answer.indexOf('69') !== -1 ? 1 : 0, title: 'E.' + this.form.form2.D, ordernumber: 69, content: this.form.form2.E })
+          this.form.form2.daan.push({ id: 0, isrightanswer: this.form.answer.indexOf('70') !== -1 ? 1 : 0, title: 'F.' + this.form.form2.D, ordernumber: 70, content: this.form.form2.F })
+          this.form.form2.answer = this.form.answer.toString()
+          // console.log(this.form.form2, 'this.form.form2')
+          this.$api.addTest(this.form.form2).then(response => {
+            if (response.status === 500) {
+              this.$message.error('服务器连接失败，请刷新在试试')
+            } else {
+              this.$message.success(response.data.data.message)
+            }
+          })
+          this.clearData()
+        } else if (this.form.questiontype === '判断题') {
+          this.form.form3.chapter = this.form.chapter
+          this.form.form3.subject = this.form.subject
+          this.form.form3.difficulty = this.form.difficulty
+          this.form.form3.type = this.form.questiontype
+          this.form.form3.fullscore = this.form.fullscore
 
-        this.form.form3.daan.push({ id: 0, isRightAnswer: this.form.form3.answer, title: this.form.form3.answer === '1' ? '正确' : '错误', orderNumber: 65, content: this.form.form3.answer === '1' ? '正确' : '错误' })
-        console.log(this.form.form3, '这是form3')
-        this.$api.addTest(this.form.form3).then(response => {
-          if (response.status === 500) {
-            this.$message.error('服务器连接失败，请刷新在试试')
-          } else {
-            console.log(response, 'response')
-            this.$message.success(response.data.data.message)
+          this.form.form3.daan.push({ id: 0, isrightanswer: 1, title: this.form.form3.answer === '1' ? '正确' : '错误', ordernumber: 65, content: this.form.form3.answer === '1' ? '正确' : '错误' })
+          console.log(this.form.form3, '这是form3')
+          this.$api.addTest(this.form.form3).then(response => {
+            if (response.status === 500) {
+              this.$message.error('服务器连接失败，请刷新在试试')
+            } else {
+              console.log(response, 'response')
+              this.$message.success(response.data.data.message)
             // this.$message.success('response.data.data.message')
-          }
-        })
-        this.clearData()
-      } else if (this.form.questiontype === '解答题') {
-        this.form.form4.chapter = this.form.chapter
-        this.form.form4.subject = this.form.subject
-        this.form.form4.difficulty = this.form.difficulty
-        this.form.form4.type = this.form.questiontype
-        this.form.form4.fullScore = this.form.fullScore
-        this.form.form4.daan.push({ id: 0, isRightAnswer: 1, title: this.form.form4.answer, orderNumber: 65, content: this.form.form4.answer })
-        this.$api.addTest(this.form.form4).then(response => {
-          if (response.status === 500) {
-            this.$message.error('服务器连接失败，请刷新在试试')
-          } else {
-            this.$message.success(response.data.data.message)
-          }
-        })
-        this.clearData()
+            }
+          })
+          this.clearData()
+        } else if (this.form.questiontype === '解答题') {
+          this.form.form4.chapter = this.form.chapter
+          this.form.form4.subject = this.form.subject
+          this.form.form4.difficulty = this.form.difficulty
+          this.form.form4.type = this.form.questiontype
+          this.form.form4.fullscore = this.form.fullscore
+          this.form.form4.daan.push({ id: 0, isrightanswer: 1, title: this.form.form4.answer, ordernumber: 65, content: this.form.form4.answer })
+          this.$api.addTest(this.form.form4).then(response => {
+            if (response.status === 500) {
+              this.$message.error('服务器连接失败，请刷新在试试')
+            } else {
+              this.$message.success(response.data.data.message)
+            }
+          })
+          this.clearData()
+        }
       }
-    },
+    }, 1000),
     clearData () {
       for (const key in this.form) {
         if (key === 'questiontype') {
@@ -513,10 +521,11 @@ export default {
             } else this.form.form1[key1] = ''
           }
         } else if (key === 'form2') {
-          for (const key2 in this.form.form3) {
+          for (const key2 in this.form.form2) {
             if (key2 === 'daan') {
-              this.form.form3[key2] = []
+              this.form.form2[key2] = []
             } else this.form.form2[key2] = ''
+            this.form.answer = []
           }
         } else if (key === 'form3') {
           for (const key3 in this.form.form3) {
@@ -543,6 +552,53 @@ export default {
     onEditorChange ({ html }) {
       // 内容改变事件
       // console.log('内容改变事件');
+    },
+    async handleExceed  (e) {
+      const file = e.raw
+
+      if (!file) { return }
+      // 读取文件 file，并在读取完后将值赋值给 data
+      let data = await this.readFile(file)
+      // 利用XLSX的方法，将数据转换成可读数据
+      const workbook = XLSX.read(data, { type: 'binary' })
+      // 获取excel表格第一个Sheet页签的数据
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+      // 将数据转换成接送对象
+      data = XLSX.utils.sheet_to_json(worksheet)
+      console.log(data)// 打印出来的数据如下图
+
+      // 将数据利用post传递至后台，插入进库
+      this.$api.importTimu(data).then(res => {
+        if (res.status === 500) {
+          this.$message.error('服务器连接失败，请刷新在试试')
+        } else {
+          this.$message.success(res.data.data)
+          console.log('这是res', res)
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
+    readFile (file) {
+      return new Promise(resolve => {
+        // 创建声明一个 FileReader
+        const reader = new FileReader()
+        // 将文件 file 以二进制的方式读取出来
+        reader.readAsBinaryString(file)
+        // 文件读取完成后将结果返回
+        reader.onload = (ev) => {
+          resolve(ev.target.result)
+        }
+      })
+    },
+    debounce (fn) { // 防抖的重要代码
+      let timer = null
+      return function () {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          fn.call(this)
+        }, 1000)
+      }
     }
   },
   watch: {

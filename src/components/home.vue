@@ -52,7 +52,7 @@ export default {
     if (this.$refs.keepAliveContainer) {
       this.keepAliveComponentInstance = this.$refs.keepAliveContainer.childNodes[0].__vue__
     }
-    console.log(this.$refs, 'ref', this.$route.fullPath)
+    // console.log(this.$refs, 'ref', this.$route.fullPath)
   },
   watch: {
 

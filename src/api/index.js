@@ -26,18 +26,20 @@ const api = {
   },
 
   addTest (params) {
-    console.log(params, '添加题目数据')
     return axios.post(base.addTest, params, { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }).then(res => {
-      console.log(res, '添加题目数据')
       return res
     }, err => {
-      console.log(err, '添加题目数据')
       return err.response
     })
   },
-  getAllTest (currentPage, pageSize) {
-    return axios.get(base.getAllTest + '/' + currentPage + '/' + pageSize).then(res => {
-      console.log(res.data, '得到题目数据')
+  getAllTest (currentPage, pageSize, params) {
+    var param
+    if (params === undefined) {
+      param = base.getAllTest + '/' + currentPage + '/' + pageSize
+    } else {
+      param = base.getAllTest + '/' + currentPage + '/' + pageSize + '?stem=' + params
+    }
+    return axios.get(param).then(res => {
       return res
     }, err => {
       return err.response
@@ -45,6 +47,27 @@ const api = {
   },
   getAllTestOptions () {
     return axios.get(base.getAllTestOptions).then(res => {
+      return res
+    }, err => {
+      return err.response
+    })
+  },
+  updateTimu (params) {
+    return axios.post(base.updateTimu, params, { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }).then(res => {
+      return res
+    }, err => {
+      return err.response
+    })
+  },
+  deleteDetail (param) {
+    return axios.post(base.deleteDetail, param, { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }).then(res => {
+      return res
+    }, err => {
+      return err.response
+    })
+  },
+  importTimu (param) {
+    return axios.post(base.importTimu, param, { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }).then(res => {
       return res
     }, err => {
       return err.response

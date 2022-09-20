@@ -5,16 +5,19 @@
       <el-form :model="form" class="form_class">
         <el-form-item>
           <el-col :span="5">
-            <el-input v-model="form.search" placeholder="请输入搜索内容"></el-input>
+            <el-input v-model="form.search" placeholder="请输入搜索内容"   ></el-input>
           </el-col>
           <el-col :span="3">
-            <el-button type="primary" @click="onSubmit" icon="el-icon-search">搜索</el-button>
+            <el-button type="primary" @click="searchByStem" icon="el-icon-search">搜索</el-button>
           </el-col>
           <el-col :span="2">
-            <el-button @click="onSubmit" icon="el-icon-delete">删除</el-button>
+            <el-button @click="onDelete" icon="el-icon-delete">删除</el-button>
           </el-col>
           <el-col :span="3">
-            <el-button @click="onSubmit" icon="el-icon-download">导入</el-button>
+            <el-upload  :file-list="fileList" class="upload-demo" action accept = ".xlsx,.xls" :auto-upload = "false" :show-file-list = "false" :on-change="handleExceed">
+   <el-button @click="onSubmit" icon="el-icon-download">导入</el-button>
+            </el-upload>
+
           </el-col>
           <el-col :span="2">
             <el-button @click="onSubmit" icon="el-icon-upload2">导出</el-button>
@@ -24,7 +27,8 @@
       </el-form>
     </div>
     <div style="margin:10px 20px;">
-      <el-table :data="tableData" v-loading="loading">
+      <el-table :data="tableData" v-loading="loading"
+      @selection-change="selectionLineChangeHandle">
         <el-table-column type="selection" width="55">
         </el-table-column>
         <el-table-column prop="id" label="序号" width="50">
@@ -40,7 +44,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="fullScore" label="分值" width="50">
+        <el-table-column prop="fullscore" label="分值" width="50">
         </el-table-column>
         <el-table-column prop="difficulty" width="150" label="难度">
           <template slot-scope="scope">
@@ -52,7 +56,7 @@
             <el-button type="text" size="small" @click="updateDetail(scope.row)">
               修改
             </el-button>
-            <el-button type="text" size="small">
+            <el-button type="text" size="small" @click="deleteDetail(scope.row.id)" >
               删除
             </el-button>
             <el-button type="text" size="small" @click="showDetail(scope.row)">
@@ -71,7 +75,7 @@
     <el-dialog title="查看具体信息" :visible.sync="dialogTableVisible" style="text-align:left; ">
       <el-row>
         <el-col :span="20">
-          <strong>{{showDetailData.id}}.</strong>{{showDetailData.stem}}<strong>({{showDetailData.fullScore}}分)</strong>
+          <strong>{{showDetailData.id}}.</strong>{{showDetailData.stem}}<strong>({{showDetailData.fullscore}}分)</strong>
         </el-col>
       </el-row>
       <el-row style="margin-top:10px">
@@ -80,7 +84,7 @@
         </el-row>
         <el-row>
           <strong>答案：</strong>
-          <div v-for="(i,index) in showDetailData.right_answer" :key="index" style="margin-top:10px;text-indent: 30px;">
+          <div v-for="(i,index) in showDetailData.rightanswer" :key="index" style="margin-top:10px;text-indent: 30px;">
             {{i.content}}</div>
         </el-row>
       </el-row>
@@ -114,29 +118,30 @@
           <el-col :span="20">
             <div>
               <div v-if=" showDetailData.type==='多选题'">
-                <el-checkbox-group v-model="getRightAnswer">
-                  <el-checkbox v-for="(i,index) in showDetailData.options" :key="index" border :label="i.order_number">
+                <el-checkbox-group v-model="getrightanswer">
+                  <el-checkbox v-for="(i,index) in showDetailData.options" :key="index" border :label="i.ordernumber">
                     {{index | transNumber}}
                   </el-checkbox>
                 </el-checkbox-group>
               </div>
               <div v-if="showDetailData.type==='单选题' ">
 
-                <el-radio-group v-model="showDetailData.right_answer[0].order_number">
-                  <el-radio   v-for="(i,index) in showDetailData.options" :key="index" border :label="i.order_number"> {{index | transNumber}}</el-radio>
+                <el-radio-group v-model="showDetailData.rightanswer[0].ordernumber">
+                  <el-radio   v-for="(i,index) in showDetailData.options" :key="index" border :label="i.ordernumber"> {{index | transNumber}}</el-radio>
 
                 </el-radio-group>
               </div>
               <div v-if="showDetailData.type==='判断题'">
-                <el-radio-group v-model="showDetailData.right_answer[0].is_right_answer">
-                  <el-radio :label="1">正确</el-radio>
-                  <el-radio :label="0">错误</el-radio>
+                <!-- <div>{{showDetailData.rightanswer[0].title}}</div> -->
+                <el-radio-group v-model="showDetailData.rightanswer[0].title">
+                  <el-radio :label="'正确'">正确</el-radio>
+                  <el-radio :label="'错误'">错误</el-radio>
                 </el-radio-group>
               </div>
               <div v-if="showDetailData.type==='解答题'">
 
                 <el-input type="textarea" :rows="4" placeholder="请输入内容"
-                  v-model="showDetailData.right_answer[0].content">
+                  v-model="showDetailData.rightanswer[0].content">
                 </el-input>
 
               </div>
@@ -160,9 +165,12 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
   </div>
 </template>
 <script>
+import * as XLSX from 'xlsx'
+// import ExportJsonExcel from 'js-export-excel'
 export default {
   name: 'allTest',
   data () {
@@ -170,169 +178,169 @@ export default {
       currentPage: 1, // 当前页码
       pageSize: 5,
       tableData: [
-        {
-          id: 1,
-          stem: '谁是老大士大夫石帆胜丰的打发打发打发打发打发打发发达法沙发沙发',
-          subject: '计算机',
-          type: '选择题',
-          fullScore: 4,
-          difficulty: 2
-        }, {
-          id: 2,
-          stem: '谁是老大',
-          subject: '计算机',
-          type: '选择题',
-          fullScore: 4,
-          difficulty: 2
-        }, {
-          id: 3,
-          stem: '谁是老大',
-          subject: '计算机',
-          type: '选择题',
-          fullScore: 4,
-          difficulty: 2
-        }, {
-          id: 1,
-          stem: '谁是老大',
-          subject: '计算机',
-          type: '选择题',
-          fullScore: 4,
-          difficulty: 2
-        }
+        // {
+        //   id: 1,
+        //   stem: '谁是老大士大夫石帆胜丰的打发打发打发打发打发打发发达法沙发沙发',
+        //   subject: '计算机',
+        //   type: '选择题',
+        //   fullscore: 4,
+        //   difficulty: 2
+        // }, {
+        //   id: 2,
+        //   stem: '谁是老大',
+        //   subject: '计算机',
+        //   type: '选择题',
+        //   fullscore: 4,
+        //   difficulty: 2
+        // }, {
+        //   id: 3,
+        //   stem: '谁是老大',
+        //   subject: '计算机',
+        //   type: '选择题',
+        //   fullscore: 4,
+        //   difficulty: 2
+        // }, {
+        //   id: 1,
+        //   stem: '谁是老大',
+        //   subject: '计算机',
+        //   type: '选择题',
+        //   fullscore: 4,
+        //   difficulty: 2
+        // }
       ],
       getAllTestOptionsData: [
-        {
-          difficulty: '2',
-          chapter: '第一章',
-          right_answer: [
-            {
-              is_right_answer: 1,
-              order_number: 66,
-              id: 1,
-              title: '"B. 拉斯维加斯算法',
-              question_id: 1,
-              content: '拉斯维加斯算法'
-            },
-            {
-              is_right_answer: 1,
-              order_number: 68,
-              id: 1,
-              title: 'D. 舍伍德算法',
-              question_id: 2,
-              content: '舍伍德算法'
-            }
-          ],
-          subject: '算法',
-          options: [
-            {
-              order_number: 65,
-              id: 1,
-              title: 'A.蒙特卡罗算法',
-              question_id: 3,
-              content: '蒙特卡罗算法'
-            },
-            {
-              order_number: 66,
-              id: 1,
-              title: 'B. 拉斯维加斯算法',
-              question_id: 1,
-              content: '拉斯维加斯算法'
-            },
-            {
-              order_number: 67,
-              id: 1,
-              title: 'C数值随机化算法',
-              question_id: 4,
-              content: '数值随机化算法'
-            },
-            {
-              order_number: 68,
-              id: 1,
-              title: 'D. 舍伍德算法',
-              question_id: 2,
-              content: '舍伍德算法'
-            }
-          ],
-          id: 1,
-          fullScore: 5,
-          type: '多选题',
-          stem: '1以下随机化算法能得能保证得到的解是正确解的算法是（）'
-        },
-        {
-          difficulty: '2',
-          chapter: '第一章',
-          right_answer: [
-            {
-              is_right_answer: 1,
-              order_number: 67,
-              id: 2,
-              title: 'C数值随机化算法',
-              question_id: 5,
-              content: 'C数值随机化算法'
-            }
-          ],
-          subject: '算法',
-          options: [
-            {
-              order_number: 67,
-              id: 2,
-              title: 'C数值随机化算法',
-              question_id: 5,
-              content: 'C数值随机化算法'
-            }
-          ],
-          id: 2,
-          fullScore: 5,
-          type: '多选题',
-          stem: '2以下随机化算法能得能保证得到的解是正确解的算法是（）'
-        },
-        {
-          difficulty: '4',
-          chapter: '第一章',
-          right_answer: [
-            {
-              is_right_answer: 1,
-              order_number: 67,
-              id: 3,
-              title: 'C数值随机化算法',
-              question_id: 6,
-              content: 'C数值随机化算法'
-            },
-            {
-              is_right_answer: 1,
-              order_number: 68,
-              id: 3,
-              title: 'C数值随机化算法',
-              question_id: 7,
-              content: 'C数值随机化算法'
-            }
-          ],
-          subject: '算法',
-          options: [
-            {
-              order_number: 67,
-              id: 3,
-              title: 'C数值随机化算法',
-              question_id: 6,
-              content: 'C数值随机化算法'
-            },
-            {
-              order_number: 68,
-              id: 3,
-              title: 'C数值随机化算法',
-              question_id: 7,
-              content: 'C数值随机化算法'
-            }
-          ],
-          id: 3,
-          fullScore: 5,
-          type: '多选题',
-          stem: '3以下随机化算法能得能保证得到的解是正确解的算法是（）'
-        }
+        // {
+        //   difficulty: '2',
+        //   chapter: '第一章',
+        //   rightanswer: [
+        //     {
+        //       isrightanswer: 1,
+        //       ordernumber: 66,
+        //       id: 1,
+        //       title: '"B.拉斯维加斯算法',
+        //       questionid: 1,
+        //       content: '拉斯维加斯算法'
+        //     },
+        //     {
+        //       isrightanswer: 1,
+        //       ordernumber: 68,
+        //       id: 1,
+        //       title: 'D.舍伍德算法',
+        //       questionid: 2,
+        //       content: '舍伍德算法'
+        //     }
+        //   ],
+        //   subject: '算法',
+        //   options: [
+        //     {
+        //       ordernumber: 65,
+        //       id: 1,
+        //       title: 'A.蒙特卡罗算法',
+        //       questionid: 3,
+        //       content: '蒙特卡罗算法'
+        //     },
+        //     {
+        //       ordernumber: 66,
+        //       id: 1,
+        //       title: 'B.拉斯维加斯算法',
+        //       questionid: 1,
+        //       content: '拉斯维加斯算法'
+        //     },
+        //     {
+        //       ordernumber: 67,
+        //       id: 1,
+        //       title: 'C数值随机化算法',
+        //       questionid: 4,
+        //       content: '数值随机化算法'
+        //     },
+        //     {
+        //       ordernumber: 68,
+        //       id: 1,
+        //       title: 'D.舍伍德算法',
+        //       questionid: 2,
+        //       content: '舍伍德算法'
+        //     }
+        //   ],
+        //   id: 1,
+        //   fullscore: 5,
+        //   type: '多选题',
+        //   stem: '1以下随机化算法能得能保证得到的解是正确解的算法是（）'
+        // },
+        // {
+        //   difficulty: '2',
+        //   chapter: '第一章',
+        //   rightanswer: [
+        //     {
+        //       isrightanswer: 1,
+        //       ordernumber: 67,
+        //       id: 2,
+        //       title: 'C数值随机化算法',
+        //       questionid: 5,
+        //       content: 'C数值随机化算法'
+        //     }
+        //   ],
+        //   subject: '算法',
+        //   options: [
+        //     {
+        //       ordernumber: 67,
+        //       id: 2,
+        //       title: 'C数值随机化算法',
+        //       questionid: 5,
+        //       content: 'C数值随机化算法'
+        //     }
+        //   ],
+        //   id: 2,
+        //   fullscore: 5,
+        //   type: '多选题',
+        //   stem: '2以下随机化算法能得能保证得到的解是正确解的算法是（）'
+        // },
+        // {
+        //   difficulty: '4',
+        //   chapter: '第一章',
+        //   rightanswer: [
+        //     {
+        //       isrightanswer: 1,
+        //       ordernumber: 67,
+        //       id: 3,
+        //       title: 'C数值随机化算法',
+        //       questionid: 6,
+        //       content: 'C数值随机化算法'
+        //     },
+        //     {
+        //       isrightanswer: 1,
+        //       ordernumber: 68,
+        //       id: 3,
+        //       title: 'C数值随机化算法',
+        //       questionid: 7,
+        //       content: 'C数值随机化算法'
+        //     }
+        //   ],
+        //   subject: '算法',
+        //   options: [
+        //     {
+        //       ordernumber: 67,
+        //       id: 3,
+        //       title: 'C数值随机化算法',
+        //       questionid: 6,
+        //       content: 'C数值随机化算法'
+        //     },
+        //     {
+        //       ordernumber: 68,
+        //       id: 3,
+        //       title: 'C数值随机化算法',
+        //       questionid: 7,
+        //       content: 'C数值随机化算法'
+        //     }
+        //   ],
+        //   id: 3,
+        //   fullscore: 5,
+        //   type: '多选题',
+        //   stem: '3以下随机化算法能得能保证得到的解是正确解的算法是（）'
+        // }
       ],
       showDetailData: {},
       showDetailDataCopy: {},
-      getRightAnswer: [],
+      getrightanswer: [],
       form: {
         search: '',
         name: '',
@@ -341,7 +349,7 @@ export default {
         chapter: '',
         subject: '',
         type: [],
-        fullScore: '',
+        fullscore: '',
         resource: '',
         answer: '',
         stem: '',
@@ -397,18 +405,29 @@ export default {
       tableDatalength: 0,
       loading: false,
       dialogTableVisible: false,
-      dialogUpdateVisible: false
+      dialogUpdateVisible: false,
+      hasbeenSelectedLineListSelections: [],
+      fileList: []
     }
   },
   methods: {
     handleCurrentChange (val) {
       this.loading = true
-      this.$api.getAllTest(val, this.pageSize).then(response => {
-        this.tableData = response.data.records
-        this.tableDatalength = response.data.total
-        this.loading = false
-        console.log(response.data.records, '是否得到数据')
-      })
+      if (this.form.search !== '') {
+        this.$api.getAllTest(this.currentPage, this.pageSize, this.form.search).then(res => {
+          this.tableData = res.data.data.records
+          this.tableDatalength = res.data.data.total
+          this.loading = false
+          console.log(this.tableData, 'this.tableData')
+        })
+      } else {
+        this.$api.getAllTest(val, this.pageSize).then(response => {
+          this.tableData = response.data.data.records
+          this.tableDatalength = response.data.data.total
+          this.loading = false
+          console.log(response.data.records, '是否得到数据')
+        })
+      }
     },
     handleSizeChange (val) {
       this.pageSize = val
@@ -430,129 +449,310 @@ export default {
       })[0]
       console.log(e, 'showDetail1111', this.showDetailData)
     },
+    selectionLineChangeHandle (val) {
+      this.hasbeenSelectedLineListSelections = val
+    },
     updateDetail (e) {
       this.dialogUpdateVisible = true
-      this.getRightAnswer = JSON.parse(JSON.stringify(this.getRightAnswer)).filter(v => {
+      this.getrightanswer = JSON.parse(JSON.stringify(this.getrightanswer)).filter(v => {
         return false
       })
       this.showDetailData = JSON.parse(JSON.stringify(this.getAllTestOptionsData)).filter(v => {
         return v.id === e.id
       })[0]
-      this.showDetailData.right_answer.forEach(element => {
-        this.getRightAnswer.push(element.order_number)
+      this.showDetailData.rightanswer.forEach(element => {
+        this.getrightanswer.push(element.ordernumber)
       })
+      console.log(this.showDetailData, '修改')
     },
     cancel () {
       this.dialogUpdateVisible = false
     },
     confirmUpdate () { // 确认修改
-      console.log(this.showDetailData.right_answer, 'this si ')
+    //  console.log(this.showDetailData.rightanswer, 'this si ', this.showDetailData.rightanswer[0].ordernumber)
       if (this.showDetailData.type === '多选题') {
-        this.showDetailData.right_answer = JSON.parse(JSON.stringify(this.showDetailData.right_answer)).filter(v => {
+        this.showDetailData.rightanswer = JSON.parse(JSON.stringify(this.showDetailData.rightanswer)).filter(v => {
           return false
         })
-        console.log('我是多选题')
+        // console.log('我是多选题', this.showDetailData)
         this.showDetailData.options.forEach(v => {
-          if (v.order_number === 65) {
-            if (this.getRightAnswer.indexOf(65) !== -1) {
-              console.log('A正确')
-              this.showDetailData.options[0].is_right_answer = 1
-              this.showDetailData.right_answer.push(this.showDetailData.options[0])
+          console.log(v, v.ordernumber, 'ordernumber')
+          if (v.ordernumber === 65) {
+            if (this.getrightanswer.indexOf(65) !== -1) {
+              this.showDetailData.options[0].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[0])
             } else {
-              this.showDetailData.options[0].is_right_answer = 0
+              this.showDetailData.options[0].isrightanswer = 0
             }
             v.title = 'A' + v.content
-          } if (v.order_number === 66) {
-            if (this.getRightAnswer.indexOf(66) !== -1) {
-              console.log('b正确')
-              this.showDetailData.options[1].is_right_answer = 1
-              this.showDetailData.right_answer.push(this.showDetailData.options[1])
+          } if (v.ordernumber === 66) {
+            if (this.getrightanswer.indexOf(66) !== -1) {
+              this.showDetailData.options[1].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[1])
             } else {
-              this.showDetailData.options[1].is_right_answer = 0
+              this.showDetailData.options[1].isrightanswer = 0
             }
             v.title = 'B' + v.content
-          } if (v.order_number === 67) {
-            if (this.getRightAnswer.indexOf(67) !== -1) {
-              console.log('c正确')
-              this.showDetailData.options[2].is_right_answer = 1
-              this.showDetailData.right_answer.push(this.showDetailData.options[2])
+          } if (v.ordernumber === 67) {
+            if (this.getrightanswer.indexOf(67) !== -1) {
+              this.showDetailData.options[2].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[2])
             } else {
-              this.showDetailData.options[2].is_right_answer = 0
+              this.showDetailData.options[2].isrightanswer = 0
             }
             v.title = 'C' + v.content
-          } if (v.order_number === 68) {
-            if (this.getRightAnswer.indexOf(68) !== -1) {
-              console.log('d正确')
-              this.showDetailData.options[3].is_right_answer = 1
-              this.showDetailData.right_answer.push(this.showDetailData.options[3])
+          } if (v.ordernumber === 68) {
+            if (this.getrightanswer.indexOf(68) !== -1) {
+              this.showDetailData.options[3].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[3])
             } else {
-              this.showDetailData.options[3].is_right_answer = 0
+              this.showDetailData.options[3].isrightanswer = 0
             }
             v.title = 'D' + v.content
-          } if (v.order_number === 69) {
-            if (this.getRightAnswer.indexOf(69) !== -1) {
-              console.log('e正确')
-              this.showDetailData.options[4].is_right_answer = 1
-              this.showDetailData.right_answer.push(this.showDetailData.options[4])
+          } if (v.ordernumber === 69) {
+            if (this.getrightanswer.indexOf(69) !== -1) {
+              this.showDetailData.options[4].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[4])
             } else {
-              this.showDetailData.options[4].is_right_answer = 0
+              this.showDetailData.options[4].isrightanswer = 0
             }
             v.title = 'E' + v.content
-          } if (v.order_number === 70) {
-            if (this.getRightAnswer.indexOf(70) !== -1) {
-              console.log('f正确')
-              this.showDetailData.options[5].is_right_answer = 1
-              this.showDetailData.right_answer.push(this.showDetailData.options[5])
+          } if (v.ordernumber === 70) {
+            if (this.getrightanswer.indexOf(70) !== -1) {
+              this.showDetailData.options[5].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[5])
             } else {
-              this.showDetailData.options[5].is_right_answer = 0
+              this.showDetailData.options[5].isrightanswer = 0
             }
             v.title = 'F' + v.content
           }
-          this.getRightAnswer.daan.push(this.showDetailData.options)
+          // this.getrightanswer.daan.push(this.showDetailData.options)
+        })
+        this.$api.updateTimu(this.showDetailData).then(response => {
+          console.log(response + 'ddd', this.showDetailData)
+          if (response.status === 500) {
+            this.$message.error('服务器连接失败，请刷新在试试')
+          } else {
+            this.$message.success(response.data.data.message)
+            this.dialogUpdateVisible = false
+            // this.handleCurrentChange(this.currentPage)
+            this.returnAllTestOptions()
+          }
         })
       } else if (this.showDetailData.type === '判断题') {
-        this.showDetailData.options[0].content = this.showDetailData.right_answer[0].is_right_answer === 1 ? '正确' : '错误'
-        this.showDetailData.options[0].title = this.showDetailData.right_answer[0].is_right_answer === 1 ? '正确' : '错误'
-        this.showDetailData.right_answer[0].title = this.showDetailData.right_answer[0].is_right_answer === 1 ? '正确' : '错误'
-        this.showDetailData.right_answer[0].content = this.showDetailData.right_answer[0].is_right_answer === 1 ? '正确' : '错误'
+        this.showDetailData.options[0].content = this.showDetailData.rightanswer[0].title === '正确' ? '正确' : '错误'
+        this.showDetailData.options[0].title = this.showDetailData.rightanswer[0].title === '正确' ? '正确' : '错误'
+        this.showDetailData.rightanswer[0].title = this.showDetailData.rightanswer[0].title === '正确' ? '正确' : '错误'
+        this.showDetailData.rightanswer[0].content = this.showDetailData.rightanswer[0].title === '正确' ? '正确' : '错误'
+        this.showDetailData.options[0].isrightanswer = 1
+      } else if (this.showDetailData.type === '单选题') {
+        this.showDetailData.options.forEach(v => {
+          if (v.ordernumber === 65) {
+            if (this.showDetailData.rightanswer[0].ordernumber === 65) {
+              this.showDetailData.options[0].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[0])
+            } else {
+              this.showDetailData.options[0].isrightanswer = 0
+            }
+            v.title = 'A.' + v.content
+          } if (v.ordernumber === 66) {
+            if (this.showDetailData.rightanswer[0].ordernumber === 66) {
+              this.showDetailData.options[1].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[1])
+            } else {
+              this.showDetailData.options[1].isrightanswer = 0
+            } v.title = 'B.' + v.content
+          }
+          if (v.ordernumber === 67) {
+            if (this.showDetailData.rightanswer[0].ordernumber === 67) {
+              this.showDetailData.options[2].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[2])
+            } else {
+              this.showDetailData.options[2].isrightanswer = 0
+            } v.title = 'C.' + v.content
+          }
+          if (v.ordernumber === 68) {
+            if (this.showDetailData.rightanswer[0].ordernumber === 68) {
+              this.showDetailData.options[3].isrightanswer = 1
+              this.showDetailData.rightanswer.push(this.showDetailData.options[3])
+            } else {
+              this.showDetailData.options[3].isrightanswer = 0
+            }
+          } v.title = 'D.' + v.content
+        })
+      } else if (this.showDetailData.type === '解答题') {
+        this.showDetailData.options[0].isrightanswer = 1
+        this.showDetailData.options[0].content = this.showDetailData.rightanswer[0].content
+        this.showDetailData.options[0].title = this.showDetailData.rightanswer[0].content
+        console.log(this.showDetailData, '解答题')
       }
-
-      console.log(this.showDetailData, '确认修改')
+      console.log(this.showDetailData, 'this.showdataildata数据')
+      this.$api.updateTimu(this.showDetailData).then(response => {
+        console.log(response + 'ddd', this.showDetailData)
+        if (response.status === 500) {
+          this.$message.error('服务器连接失败，请刷新在试试')
+        } else {
+          this.$message.success(response.data.data.message)
+          this.dialogUpdateVisible = false
+          // this.handleCurrentChange(this.currentPage)
+          this.returnAllTestOptions()
+        }
+      })
     },
     isChecked (e) {
       var ee = this.$options.filters.transNumber(e)
-      console.log(this.getRightAnswer.indexOf(e), e, this.getRightAnswer)
-      // if (this.getRightAnswer.indexOf(e) === -1) {
-      //  this.getRightAnswer.push(e)
+      console.log(this.getrightanswer.indexOf(e), e, this.getrightanswer)
+      // if (this.getrightanswer.indexOf(e) === -1) {
+      //  this.getrightanswer.push(e)
       // } else {
-      // this.getRightAnswer.splice(this.getRightAnswer.indexOf(e), 1)
+      // this.getrightanswer.splice(this.getrightanswer.indexOf(e), 1)
       // }
-      console.log('eeeeeeeeeeeeeeeeeeeeeeeeeeeee', ee, e, this.getRightAnswer)
-      // alert(ee, this.getRightAnswer.toString())
-    }
+      console.log('eeeeeeeeeeeeeeeeeeeeeeeeeeeee', ee, e, this.getrightanswer)
+      // alert(ee, this.getrightanswer.toString())
+    },
+    returnAllTestOptions () {
+      this.$api.getAllTestOptions().then(response => {
+        if (response.status === 500) {
+          this.$message.error('服务器连接失败，请刷新在试试')
+        } else {
+          this.getAllTestOptionsData = response.data.data.alltest
+          this.$api.getAllTest(this.currentPage, this.pageSize).then(res => {
+            this.tableData = res.data.data.records
+            this.tableDatalength = res.data.data.total
+            this.loading = false
+          })
+        }
+      })
+    },
+    onDelete () {
+      console.log(this.hasbeenSelectedLineListSelections, '  this.hasbeenSelectedLineListSelections')
+      if (this.hasbeenSelectedLineListSelections.length === 0) {
+        this.$message({
+          type: 'error',
+          message: '未选中要删除的内容'
+        })
+      } else {
+        this.$confirm('确认要删除选中的内容吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.hasbeenSelectedLineListSelections.forEach(v => {
+            this.$api.deleteDetail(v.id).then(response => {
+              if (response.status === 500) {
+                this.$message.error('服务器连接失败，请刷新在试试')
+              } else if (response.data.flag === true) {
+                this.$message.success(response.data.data.message)
+                this.returnAllTestOptions()
+              } else {
+                this.$message.error(response.data.data.message)
+              }
+              console.log(response.data.data.flag, response, 'e i s')
+            })
+            const index = this.tableData.findIndex((id1) => {
+              return id1.id === v.id
+            })
+            // 当查找失败返回
+            if (index === -1) {
+              return console.log('删除失败')
+            }
+          // 如果找到该元素，使用splice方法删除元素
+          // this.tableData.splice(index, 1)
+          })
+          this.returnAllTestOptions()
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+      }
+    },
 
-    // , handleSizeChange(val) {
-    //   this.$emit("handleSizeChange", { page: this.currentPage, limit: val });
-    // },
-    // handleCurrentChange(val) {
-    //   this.$emit("handleCurrentChange", { page: val, limit: this.pageSize });
-    // }
+    deleteDetail (e) {
+      this.$confirm('确认要删除选中的内容吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$api.deleteDetail(e).then(response => {
+          if (response.status === 500) {
+            this.$message.error('服务器连接失败，请刷新在试试')
+          } else if (response.data.flag === true) {
+            this.$message.success(response.data.data.message)
+            this.returnAllTestOptions()
+          } else {
+            this.$message.error(response.data.data.message)
+          }
+          console.log(response.data.data.flag, response, 'e i s')
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    searchByStem () {
+      this.$api.getAllTestOptions().then(response => {
+        console.log('response is2222', this.form.search)
+        if (response.status === 500) {
+          this.$message.error('服务器连接失败，请刷新在试试')
+        } else {
+          this.getAllTestOptionsData = response.data.data.alltest
+          this.$api.getAllTest(this.currentPage, this.pageSize, this.form.search).then(res => {
+            this.tableData = res.data.data.records
+            this.tableDatalength = res.data.data.total
+            this.loading = false
+            console.log(this.tableData, 'this.tableData')
+          })
+          console.log('this.tableData1')
+        }
+      })
+    },
+    async handleExceed  (e) {
+      const file = e.raw
+
+      if (!file) { return }
+      // 读取文件 file，并在读取完后将值赋值给 data
+      let data = await this.readFile(file)
+      // 利用XLSX的方法，将数据转换成可读数据
+      const workbook = XLSX.read(data, { type: 'binary' })
+      // 获取excel表格第一个Sheet页签的数据
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+      // 将数据转换成接送对象
+      data = XLSX.utils.sheet_to_json(worksheet)
+      console.log(data)// 打印出来的数据如下图
+
+      // 将数据利用post传递至后台，插入进库
+      this.$api.importTimu(data).then(res => {
+        if (res.status === 500) {
+          this.$message.error('服务器连接失败，请刷新在试试')
+        } else {
+          this.$message.success(res.data.data)
+          console.log('这是res', res)
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
+    readFile (file) {
+      return new Promise(resolve => {
+        // 创建声明一个 FileReader
+        const reader = new FileReader()
+        // 将文件 file 以二进制的方式读取出来
+        reader.readAsBinaryString(file)
+        // 文件读取完成后将结果返回
+        reader.onload = (ev) => {
+          resolve(ev.target.result)
+        }
+      })
+    }
   },
 
   mounted () {
-    this.$api.getAllTestOptions().then(response => {
-      console.log(response, 'response is', response)
-      if (response.status === 500) {
-        this.$message.error('服务器连接失败，请刷新在试试')
-      } else {
-        this.getAllTestOptionsData = response.data.data.alltest
-        this.$api.getAllTest(this.currentPage, this.pageSize).then(response => {
-          this.tableData = response.data.records
-          this.tableDatalength = response.data.total
-          this.loading = false
-        })
-      }
-    })
+    console.log('数据是否发生变化')
+    this.returnAllTestOptions()
   },
   filters: {
     transNumber (i) {
@@ -573,6 +773,13 @@ export default {
       return dist[i] || ''
     }
 
+  },
+  watch: {
+    $route (to, from) {
+      if (to.path === '/testmanage/alltest') {
+        this.returnAllTestOptions()
+      }
+    }
   }
 }
 </script>

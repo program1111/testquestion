@@ -71,25 +71,25 @@ export default {
           } else if (response.data.flag === true) {
             sessionStorage.setItem('token', response.data.token)
             this.$message.success('登录成功')
-            // console.log(this, this.$route)
+
             setToken('Token', 'amy')
             return this.$router.push('/index/index')
           }
           //  else {
           //   sessionStorage.setItem('token', response.token)
           //   this.$message.success('登录成功')
-          //   // console.log(this, this.$route)
+
           //   setToken('Token', 'amy')
           //   return this.$router.push('/index/index')
           //   // return this.$message.error('暂时连不上服务器')
           // }
 
           //   if (response.meta.status !== 200) {
-          //     console.log('登录失败')
+
           //     localStorage.setItem('userid', 'admin1')
           //     return this.$message.error('登录失败')
           //   } else {
-          //     console.log('login success')
+
           //   localStorage.setItem('userid', this.loginForm.userid)
           // return this.$message.success('登录成功')
           // console.log(this, this.$route)

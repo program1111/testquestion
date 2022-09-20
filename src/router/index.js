@@ -72,7 +72,7 @@ const routes = [{
 // },
 {
   path: '/examManage',
-  name: 'index',
+  name: 'examManage',
   component: home,
   meta: {
     title: '考试管理',
@@ -81,7 +81,7 @@ const routes = [{
   noDropdown: true,
   children: [
     {
-      path: 'index',
+      path: 'examManage',
       meta: {
         title: '考试管理',
         icon: 'el-icon-reading',
@@ -153,7 +153,7 @@ const routes = [{
 },
 {
   path: '/studentmanage',
-  name: 'fundManage',
+  name: 'studentmanage',
   meta: {
     title: '学生管理',
     icon: 'el-icon-s-custom'
@@ -162,7 +162,7 @@ const routes = [{
   children: [
     {
       path: 'studentmanage',
-      name: 'studentmanage',
+      // name: 'studentmanage',
       meta: {
         title: '学生管理',
         routerType: 'leftmenu'
